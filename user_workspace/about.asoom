@@ -1,0 +1,13 @@
+page {
+    box class="container"
+        h1 "Mere Baare Mein (About Page)"
+        txt "Yeh ek multi-page Asoom website ban chuki hai!"
+        
+        link text="👈 Wapas Ghar Jao" href="/live/index.asoom"
+    band
+}
+
+style {
+    body { background: #2d2d2d; color: #f48771; padding: 50px; font-family: sans-serif; text-align: center; }
+    a { color: white; font-size: 20px; border: 1px solid white; padding: 10px; border-radius: 5px; text-decoration: none;}
+}

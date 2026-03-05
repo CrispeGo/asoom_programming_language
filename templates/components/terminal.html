@@ -1,0 +1,185 @@
+<div id="terminal-panel" class="h-48 bg-[#1e1e1e] flex flex-col border-t border-[#333] shrink-0 w-full z-20 relative">
+    
+    <div class="flex bg-[#1e1e1e] text-[11px] font-medium tracking-wider text-gray-400 uppercase select-none shrink-0 border-b border-[#2d2d2d]">
+        <span class="tm-tab px-4 py-2 border-b-[1px] border-[#007acc] text-white cursor-pointer hover:bg-[#2a2d2e] transition">Terminal</span>
+        <span class="tm-tab px-4 py-2 border-b-[1px] border-transparent hover:text-white cursor-pointer hover:bg-[#2a2d2e] transition">Output</span>
+        <span class="tm-tab px-4 py-2 border-b-[1px] border-transparent hover:text-white cursor-pointer hover:bg-[#2a2d2e] transition">Problems <span class="bg-[#333] text-gray-300 px-1.5 rounded-full text-[9px] ml-1">0</span></span>
+        
+        <div class="flex-1 flex justify-end items-center px-4 gap-4 text-[13px]">
+            <i class="fa-solid fa-plus cursor-pointer hover:text-white transition" title="New Terminal"></i>
+            <i id="tm-copy-btn" class="fa-regular fa-copy cursor-pointer hover:text-[#4ec9b0] transition" title="Copy Terminal Text"></i>
+            <i id="tm-clear-btn" class="fa-solid fa-trash cursor-pointer hover:text-[#f48771] transition" title="Clear Terminal"></i>
+            <i id="tm-close-btn" class="fa-solid fa-xmark cursor-pointer hover:text-white transition" title="Close Panel"></i>
+        </div>
+    </div>
+    
+    <div class="flex-1 p-3 overflow-y-auto font-mono text-[13px] text-[#cccccc] bg-[#1e1e1e] custom-scrollbar flex flex-col" id="terminal-scroll-area">
+        
+        <div id="tm-history" class="flex flex-col w-full select-text">
+            <div class="text-gray-500 mb-2 font-sans text-[11px] tracking-wide">Asoom IDE Engine v1.0.0</div>
+            <div class="text-[#4ec9b0] mb-1">Asoom-System <span class="text-gray-400">ready. Awaiting Python Transpiler connection...</span></div>
+        </div>
+        
+        <div class="flex items-center mt-1 shrink-0 w-full">
+            <span class="text-[#569cd6] mr-2 font-bold">~</span>
+            <span class="text-[#dcdcaa] mr-2">asoom</span>
+            <span class="text-gray-400 mr-2">$</span>
+            <input type="text" id="tm-input" class="flex-1 bg-transparent outline-none text-white border-none focus:ring-0 p-0" autocomplete="off" spellcheck="false" placeholder="Terminal command type karein...">
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputField = document.getElementById('tm-input');
+            const historyContainer = document.getElementById('tm-history');
+            const scrollArea = document.getElementById('terminal-scroll-area');
+            const clearBtn = document.getElementById('tm-clear-btn');
+            const closeBtn = document.getElementById('tm-close-btn');
+            const copyBtn = document.getElementById('tm-copy-btn');
+
+            // Command history array for Up/Down arrows
+            let cmdHistory = [];
+            let historyIndex = -1;
+
+            // --- 1. GLOBAL LOGGER ENGINE ---
+            window.printToTerminal = function(message, type = "info") {
+                let colorClass = "text-gray-300"; // default info
+                let icon = "";
+                
+                if (type === "success") { colorClass = "text-[#4ec9b0]"; icon = "✓ "; }
+                if (type === "error") { colorClass = "text-[#f48771]"; icon = "✖ "; }
+                if (type === "warning") { colorClass = "text-[#cca700]"; icon = "⚠ "; }
+                if (type === "system") { colorClass = "text-[#569cd6]"; icon = "⚙ "; }
+
+                const logLine = document.createElement('div');
+                logLine.className = `mb-1 ${colorClass} break-words`;
+                logLine.innerHTML = `<span class="opacity-80">${icon}</span>${message}`;
+                
+                historyContainer.appendChild(logLine);
+                scrollToBottom();
+            };
+
+            // --- SMART FOCUS LOGIC (Text select karne dega) ---
+            scrollArea.addEventListener('mouseup', () => {
+                const selection = window.getSelection().toString();
+                // Agar user ne koi text select nahi kiya hai, tabhi input par focus jayega
+                if (!selection) {
+                    inputField.focus();
+                }
+            });
+
+            // --- 2. COMMAND LINE INTERACTION (Enter, Up, Down keys) ---
+            if(inputField) {
+                inputField.addEventListener('keydown', (e) => {
+                    
+                    if(e.key === 'Enter') {
+                        const cmd = inputField.value.trim();
+                        if(cmd !== "") {
+                            // Command history me save karo
+                            cmdHistory.push(cmd);
+                            historyIndex = cmdHistory.length;
+
+                            const echoLine = document.createElement('div');
+                            echoLine.className = "flex items-center mt-1 mb-1 opacity-60";
+                            echoLine.innerHTML = `<span class="text-[#569cd6] mr-2 font-bold">~</span><span class="text-[#dcdcaa] mr-2">asoom</span><span class="text-gray-400 mr-2">$</span><span class="text-white">${cmd}</span>`;
+                            historyContainer.appendChild(echoLine);
+
+                            processCommand(cmd.toLowerCase());
+                        }
+                        inputField.value = "";
+                        scrollToBottom();
+                    }
+                    
+                    // UP ARROW: Purana command laao
+                    else if (e.key === 'ArrowUp') {
+                        if (historyIndex > 0) {
+                            historyIndex--;
+                            inputField.value = cmdHistory[historyIndex];
+                            // Cursor ko aakhiri me rakhne ke liye thoda timeout
+                            setTimeout(() => inputField.setSelectionRange(inputField.value.length, inputField.value.length), 0);
+                        }
+                        e.preventDefault();
+                    }
+                    
+                    // DOWN ARROW: Naya command / Khali karo
+                    else if (e.key === 'ArrowDown') {
+                        if (historyIndex < cmdHistory.length - 1) {
+                            historyIndex++;
+                            inputField.value = cmdHistory[historyIndex];
+                        } else {
+                            historyIndex = cmdHistory.length;
+                            inputField.value = "";
+                        }
+                        e.preventDefault();
+                    }
+                });
+            }
+
+            function processCommand(cmd) {
+                if (cmd === "clear" || cmd === "cls") {
+                    historyContainer.innerHTML = "";
+                } 
+                else if (cmd === "help") {
+                    window.printToTerminal("Available commands: <b>clear</b>, <b>help</b>, <b>version</b>", "info");
+                }
+                else if (cmd === "version") {
+                    window.printToTerminal("Asoom IDE Engine v1.0.0 (Hinglish Edition)", "system");
+                }
+                else {
+                    window.printToTerminal(`bash: ${cmd}: command not found. Backend link pending.`, "error");
+                }
+            }
+
+            function scrollToBottom() {
+                scrollArea.scrollTop = scrollArea.scrollHeight;
+            }
+
+            // --- 3. PANEL ACTIONS ---
+            
+            // ONE CLICK COPY BUTTON
+            if(copyBtn) {
+                copyBtn.addEventListener('click', () => {
+                    const textToCopy = historyContainer.innerText;
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        window.printToTerminal("Terminal text copied to clipboard!", "success");
+                    }).catch(err => {
+                        console.error("Copy failed", err);
+                    });
+                });
+            }
+
+            // Clear Button
+            if(clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    historyContainer.innerHTML = "";
+                    inputField.focus();
+                });
+            }
+
+            // Close Button
+            if(closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    if (typeof window.toggleTerminal === 'function') {
+                        window.toggleTerminal();
+                    }
+                });
+            }
+
+            // Tab Switching Visuals
+            const tabs = document.querySelectorAll('.tm-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => {
+                        t.classList.remove('border-[#007acc]', 'text-white');
+                        t.classList.add('border-transparent', 'text-gray-400');
+                    });
+                    tab.classList.remove('border-transparent', 'text-gray-400');
+                    tab.classList.add('border-[#007acc]', 'text-white');
+                });
+            });
+
+        });
+    })();
+</script>

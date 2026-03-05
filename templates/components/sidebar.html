@@ -1,0 +1,308 @@
+<div id="sidebar" class="w-64 bg-[#252526] flex flex-col shrink-0 select-none border-r border-[#1e1e1e] h-full overflow-hidden group">
+    
+    <div class="text-[11px] font-bold text-[#cccccc] pl-5 pr-3 py-3 flex justify-between items-center tracking-widest">
+        <span>EXPLORER</span>
+        <div class="flex gap-2.5 text-[13px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200" id="explorer-actions">
+            <i class="sb-action fa-solid fa-file-circle-plus hover:text-white cursor-pointer" data-action="Nayi File Banao" title="New File"></i>
+            <i class="sb-action fa-solid fa-folder-plus hover:text-white cursor-pointer" data-action="Naya Folder Banao" title="New Folder"></i>
+
+            <i class="sb-action fa-solid fa-rotate-right hover:text-white cursor-pointer" data-action="Refresh File Tree" title="Refresh"></i>
+        </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto overflow-x-hidden text-[13px] text-[#cccccc] custom-scrollbar">
+        
+        <div class="sb-folder flex items-center gap-1.5 px-1 py-1 hover:bg-[#2a2d2e] cursor-pointer font-bold text-gray-300" data-target="root-file-list">
+            <i class="sb-folder-icon fa-solid fa-chevron-down text-[10px] w-4 text-center transition-transform"></i>
+            <span class="tracking-wide uppercase text-[12px]">Mera_Project</span>
+        </div>
+
+        <div id="root-file-list" class="flex flex-col mt-0.5">
+            <div class="text-gray-500 text-[11px] pl-8 py-2 italic">Loading files...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+document.addEventListener("DOMContentLoaded",()=>{
+
+const rootList = document.getElementById("root-file-list");
+
+let selectedPath = null;
+let selectedType = null;
+
+// =====================================
+// ICON HELPER
+// =====================================
+function getIcon(name){
+    if(!name) return '';
+    
+    // Asoom ka VIP Icon (Pink/Purple Lightning Bolt)
+    if(name.endsWith(".asoom")) return '<i class="fa-solid fa-bolt text-[#c586c0]"></i>';
+    
+    // Baaki normal icons
+    if(name.endsWith(".html")) return '<i class="fa-brands fa-html5 text-[#e34f26]"></i>';
+    if(name.endsWith(".css")) return '<i class="fa-brands fa-css3-alt text-[#264de4]"></i>';
+    if(name.endsWith(".js")) return '<i class="fa-brands fa-js text-[#f7df1e]"></i>';
+    return '<i class="fa-brands fa-python text-[#3776ab]"></i>';
+}
+// =====================================
+// CLEAR HIGHLIGHT
+// =====================================
+function clearHighlight(){
+    document.querySelectorAll(".sb-file, .sb-folder-item")
+        .forEach(el=>el.classList.remove("bg-[#37373d]","text-white"));
+}
+
+// =====================================
+// TREE RENDER ENGINE
+// =====================================
+function renderTree(nodes,parent){
+
+    nodes.forEach(node=>{
+
+        const wrapper = document.createElement("div");
+        wrapper.setAttribute("data-path",node.path);
+        wrapper.setAttribute("data-type",node.type);
+
+        // ===================== FOLDER =====================
+        if(node.type==="folder"){
+
+            wrapper.innerHTML = `
+                <div class="sb-folder-item flex items-center gap-2 pl-4 py-1 cursor-pointer hover:bg-[#2a2d2e]">
+                    <i class="fa-solid fa-chevron-right text-[10px] w-3 transition"></i>
+                    <i class="fa-solid fa-folder text-yellow-400"></i>
+                    <span>${node.name}</span>
+                </div>
+            `;
+
+            const header = wrapper.firstElementChild;
+            const children = document.createElement("div");
+            children.className = "ml-4 hidden";
+
+            // Expand / Collapse
+            header.addEventListener("click",(e)=>{
+                e.stopPropagation();
+                clearHighlight();
+                header.classList.add("bg-[#37373d]","text-white");
+
+                selectedPath = node.path;
+                selectedType = "folder";
+
+                children.classList.toggle("hidden");
+                header.querySelector(".fa-chevron-right")
+                      .classList.toggle("rotate-90");
+            });
+
+            // DROP TARGET
+            header.addEventListener("dragover",(e)=>e.preventDefault());
+
+            header.addEventListener("drop",async(e)=>{
+                e.preventDefault();
+
+                const draggedPath = e.dataTransfer.getData("text/plain");
+                if(!draggedPath) return;
+
+                // Prevent self move
+                if(node.path.startsWith(draggedPath)){
+                    alert("Folder ke andar khud ko move nahi kar sakte.");
+                    return;
+                }
+
+                const fileName = draggedPath.split("/").pop();
+                const newPath = node.path + "/" + fileName;
+
+                await fetch("/api/rename",{
+                    method:"POST",
+                    headers:{"Content-Type":"application/json"},
+                    body:JSON.stringify({old:draggedPath,new:newPath})
+                });
+
+                refreshSidebarFiles();
+            });
+
+            renderTree(node.children||[],children);
+
+            parent.appendChild(wrapper);
+            parent.appendChild(children);
+
+        }
+
+        // ===================== FILE =====================
+        else{
+
+            wrapper.innerHTML = `
+                <div class="sb-file flex items-center gap-2 pl-8 py-1 cursor-pointer hover:bg-[#2a2d2e]">
+                    ${getIcon(node.name)}
+                    <span>${node.name}</span>
+                </div>
+            `;
+
+            const fileEl = wrapper.firstElementChild;
+
+            // CLICK OPEN
+            fileEl.addEventListener("click",(e)=>{
+                e.stopPropagation();
+                clearHighlight();
+                fileEl.classList.add("bg-[#37373d]","text-white");
+
+                selectedPath = node.path;
+                selectedType = "file";
+
+                if(window.openFileInEditor){
+                    window.openFileInEditor(node.path);
+                }
+            });
+
+            // DRAG START
+            fileEl.setAttribute("draggable","true");
+            fileEl.addEventListener("dragstart",(e)=>{
+                e.dataTransfer.setData("text/plain",node.path);
+            });
+
+            parent.appendChild(wrapper);
+        }
+
+    });
+}
+
+// =====================================
+// LOAD TREE
+// =====================================
+window.refreshSidebarFiles = async function(){
+
+    rootList.innerHTML =
+        '<div class="text-gray-500 text-[11px] pl-8 py-2 italic"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div>';
+
+    try{
+        const res = await fetch("/api/tree");
+        const data = await res.json();
+
+        rootList.innerHTML = "";
+
+        if(data.status==="success"){
+            renderTree(data.tree,rootList);
+        }else{
+            rootList.innerHTML =
+                '<div class="text-red-400 text-[11px] pl-8 py-2 italic">Load failed</div>';
+        }
+
+    }catch(err){
+        rootList.innerHTML =
+            '<div class="text-red-400 text-[11px] pl-8 py-2 italic">Server error</div>';
+    }
+};
+
+// =====================================
+// CREATE FILE / FOLDER
+// =====================================
+window.promptNewFile = async function(type="file"){
+
+    const { value:name } = await Swal.fire({
+        title:type==="folder"?"Naya Folder":"Nayi File",
+        input:"text",
+        background:"#252526",
+        color:"#ccc",
+        showCancelButton:true
+    });
+
+    if(!name) return;
+
+    let basePath="";
+
+    if(selectedPath){
+        if(selectedType==="folder"){
+            basePath=selectedPath;
+        }else{
+            basePath=selectedPath.split("/").slice(0,-1).join("/");
+        }
+    }
+
+    const fullPath = basePath ? basePath+"/"+name : name;
+
+    await fetch("/api/create",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({path:fullPath,type:type})
+    });
+
+    refreshSidebarFiles();
+};
+
+// =====================================
+// CONTEXT MENU
+// =====================================
+document.addEventListener("contextmenu",async(e)=>{
+
+    const item = e.target.closest("[data-path]");
+    if(!item) return;
+
+    e.preventDefault();
+
+    const path = item.getAttribute("data-path");
+
+    const result = await Swal.fire({
+        title:path,
+        showDenyButton:true,
+        showCancelButton:true,
+        confirmButtonText:"Rename",
+        denyButtonText:"Delete",
+        background:"#252526",
+        color:"#ccc"
+    });
+
+    // RENAME
+    if(result.isConfirmed){
+
+        const { value:newName } = await Swal.fire({
+            title:"Rename",
+            input:"text"
+        });
+
+        if(newName){
+            const parent = path.split("/").slice(0,-1).join("/");
+            const newPath = parent ? parent+"/"+newName : newName;
+
+            await fetch("/api/rename",{
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({old:path,new:newPath})
+            });
+
+            refreshSidebarFiles();
+        }
+    }
+
+    // DELETE
+    if(result.isDenied){
+
+        await fetch("/api/delete",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({path:path})
+        });
+
+        refreshSidebarFiles();
+    }
+});
+
+// =====================================
+// TOP BUTTONS
+// =====================================
+document.querySelectorAll(".sb-action").forEach(btn=>{
+    btn.addEventListener("click",(e)=>{
+        e.stopPropagation();
+        const action = btn.getAttribute("data-action");
+
+        if(action==="Nayi File Banao") promptNewFile("file");
+        if(action==="Naya Folder Banao") promptNewFile("folder");
+        if(action==="Refresh File Tree") refreshSidebarFiles();
+    });
+});
+
+refreshSidebarFiles();
+
+});
+})();
+</script>

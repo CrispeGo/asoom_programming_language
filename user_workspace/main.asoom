@@ -1,0 +1,15 @@
+page {
+    box class="container"
+        h1 "Ghar (Home Page)"
+        txt "Yeh mera index page hai."
+        
+        # Yahan hum '/live/' ke sath dusri file ka naam likhenge
+        link text="👉 About Page Par Jao" href="/live/about.asoom"
+    band
+}
+
+style {
+    body { background: #1e1e1e; color: white; padding: 50px; font-family: sans-serif; text-align: center; }
+    a { color: #4ec9b0; font-size: 20px; text-decoration: none; border: 1px solid #4ec9b0; padding: 10px; border-radius: 5px;}
+    a:hover { background: #4ec9b0; color: black;  }
+}

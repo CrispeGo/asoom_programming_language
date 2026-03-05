@@ -1,0 +1,258 @@
+<nav id="asoom-topbar" class="bg-[#333333] h-11 flex justify-between items-center px-3 border-b border-[#1e1e1e] select-none text-[13px] shrink-0 shadow-sm relative z-50">
+    
+    <div class="flex items-center h-full">
+        <div class="mr-3 text-[#007acc] hover:text-white transition cursor-pointer" title="Asoom IDE Home">
+            <i class="fa-solid fa-code text-lg"></i>
+        </div>
+
+        <div class="flex h-full text-[#cccccc]">
+            
+            <div class="group h-full flex items-center px-2.5 hover:bg-[#505050] hover:text-white cursor-pointer transition relative">
+                <span>File</span>
+                <div class="hidden group-hover:block absolute top-full left-0 bg-[#252526] border border-[#454545] shadow-2xl py-1.5 min-w-[240px] rounded-b-md">
+                    <div class="tb-action px-5 py-1.5 hover:bg-[#04395e] hover:text-white flex justify-between items-center text-gray-300" data-action="Nayi File">
+                        <div class="flex items-center gap-3"><i class="fa-regular fa-file text-[14px] w-4 text-center"></i> Nayi File</div>
+                        <span class="text-gray-500 text-[11px] tracking-widest font-mono">Ctrl+N</span>
+                    </div>
+                    <div class="tb-action px-5 py-1.5 hover:bg-[#04395e] hover:text-white flex justify-between items-center text-gray-300" data-action="Naya Folder">
+                        <div class="flex items-center gap-3"><i class="fa-regular fa-folder-open text-[14px] w-4 text-center"></i> Naya Folder</div>
+                    </div>
+                    <div class="border-t border-[#454545] my-1.5"></div>
+                    <div class="tb-action px-5 py-1.5 hover:bg-[#04395e] hover:text-white flex justify-between items-center text-gray-300" data-action="Save">
+                        <div class="flex items-center gap-3"><i class="fa-regular fa-floppy-disk text-[14px] w-4 text-center"></i> Save</div>
+                        <span class="text-gray-500 text-[11px] tracking-widest font-mono">Ctrl+S</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group h-full flex items-center px-2.5 hover:bg-[#505050] hover:text-white cursor-pointer transition relative">
+                <span>Edit</span>
+                <div class="hidden group-hover:block absolute top-full left-0 bg-[#252526] border border-[#454545] shadow-2xl py-1.5 min-w-[200px] rounded-b-md">
+                    <div class="tb-action px-5 py-1.5 hover:bg-[#04395e] hover:text-white flex justify-between items-center text-gray-300" data-action="Undo">
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-rotate-left text-[14px] w-4 text-center"></i> Undo</div>
+                        <span class="text-gray-500 text-[11px] tracking-widest font-mono">Ctrl+Z</span>
+                    </div>
+                    <div class="tb-action px-5 py-1.5 hover:bg-[#04395e] hover:text-white flex justify-between items-center text-gray-300" data-action="Copy">
+                        <div class="flex items-center gap-3"><i class="fa-regular fa-copy text-[14px] w-4 text-center"></i> Copy</div>
+                        <span class="text-gray-500 text-[11px] tracking-widest font-mono">Ctrl+C</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group h-full flex items-center px-2.5 hover:bg-[#505050] hover:text-white cursor-pointer transition relative">
+                <span>Terminal</span>
+                <div class="hidden group-hover:block absolute top-full left-0 bg-[#252526] border border-[#454545] shadow-2xl py-1.5 min-w-[220px] rounded-b-md">
+                    <div class="tb-action px-5 py-1.5 hover:bg-[#04395e] hover:text-white flex justify-between items-center text-gray-300" data-action="Naya Terminal">
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-terminal text-[14px] w-4 text-center"></i> Naya Terminal</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="group h-full flex items-center px-2.5 hover:bg-[#505050] text-[#c586c0] font-semibold hover:text-white cursor-pointer transition relative">
+                <i class="fa-solid fa-sparkles mr-1.5 text-[11px]"></i> <span>Asoom AI</span>
+                <div class="hidden group-hover:block absolute top-full left-0 bg-[#252526] border border-[#454545] shadow-2xl py-1.5 min-w-[240px] rounded-b-md">
+                    <div class="tb-action px-5 py-1.5 hover:bg-[#04395e] hover:text-white flex items-center gap-3 text-gray-300" data-action="Code Theek Karo">
+                        <i class="fa-solid fa-wand-magic-sparkles text-[#c586c0] text-[14px] w-4 text-center"></i> Code ko theek karo
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="absolute left-1/2 transform -translate-x-1/2 flex items-center">
+        <div id="tb-search-bar" class="bg-[#2d2d2d] hover:bg-[#3c3c3c] border border-[#3c3c3c] hover:border-[#555] text-[#cccccc] px-12 py-1 rounded-md text-[12px] flex items-center gap-2 cursor-pointer transition shadow-inner">
+            <i class="fa-solid fa-magnifying-glass text-[#888]"></i>
+            <span class="font-medium text-white">mera_project</span>
+            <span class="text-[#888]">- Asoom IDE</span>
+        </div>
+    </div>
+
+    <div class="flex items-center h-full text-[#cccccc] gap-2">
+        
+        <div class="flex items-center gap-4 text-gray-400 mr-2">
+    <i class="fa-solid fa-gear hover:text-white cursor-pointer transition text-[14px]" title="IDE Settings" onclick="window.openSettings()"></i>
+    
+    <button id="tb-run-btn" class="bg-[#27c93f] hover:bg-[#1fae33] text-white px-3 py-1 rounded-sm flex items-center gap-2 transition font-bold shadow-sm">
+        <i class="fa-solid fa-play text-[10px]"></i> Chalao
+    </button>
+</div>
+
+        <div class="flex items-center gap-1 border-l border-[#555] pl-3 h-5 text-[14px]">
+            <button id="tb-toggle-sidebar" class="hover:bg-[#505050] text-[#888] hover:text-white px-1.5 py-0.5 rounded transition" title="Toggle Sidebar"><i class="fa-solid fa-border-left"></i></button>
+            <button id="tb-toggle-bottom" class="hover:bg-[#505050] text-[#888] hover:text-white px-1.5 py-0.5 rounded transition" title="Toggle Bottom Panel"><i class="fa-solid fa-border-bottom"></i></button>
+            <button id="tb-toggle-right" class="hover:bg-[#505050] text-[#888] hover:text-white px-1.5 py-0.5 rounded transition" title="Toggle Right Panel"><i class="fa-solid fa-border-right"></i></button>
+        </div>
+    </div>
+
+</nav>
+
+<script>
+(function(){
+document.addEventListener("DOMContentLoaded",()=>{
+
+// ===============================
+// SAFE HELPERS
+// ===============================
+function safeAlert(msg,type="info"){
+    if(window.showAlert) window.showAlert(msg,type);
+}
+
+function safeTerminal(msg,type="info"){
+    if(window.printToTerminal) window.printToTerminal(msg,type);
+}
+
+// ===============================
+// FILE MENU ACTIONS
+// ===============================
+async function handleSave(){
+
+    if(!window.editorInstance || !window.activeTab){
+        safeAlert("Koi file open nahi hai!","error");
+        return;
+    }
+
+    const code = window.editorInstance.getValue();
+    const filename = window.activeTab;
+
+    safeTerminal(`Saving ${filename}...`,"system");
+
+    if(window.AsoomAPI?.saveFile){
+        const result = await window.AsoomAPI.saveFile(filename,code);
+
+        if(result.status==="success"){
+            safeAlert("File Saved ✔","success");
+            safeTerminal("Save successful","success");
+        }else{
+            safeAlert("Save failed","error");
+            safeTerminal(result.message || "Save error","error");
+        }
+    }
+}
+
+// ===============================
+// RUN ENGINE
+// ===============================
+async function handleRun(){
+
+    if(!window.editorInstance){
+        safeAlert("Editor load nahi hua!","error");
+        return;
+    }
+
+    const code = window.editorInstance.getValue();
+    safeTerminal("Running project...","system");
+
+    const loader = document.getElementById("pv-loader");
+    loader?.classList.remove("hidden");
+    loader?.classList.add("flex");
+
+    if(window.AsoomAPI?.runProject){
+
+        const result = await window.AsoomAPI.runProject(code);
+
+        loader?.classList.add("hidden");
+        loader?.classList.remove("flex");
+
+        if(result.status==="success"){
+            if(window.renderLiveWeb)
+                window.renderLiveWeb(result.output_html);
+
+            safeTerminal(result.terminal_log,"success");
+        }else{
+            safeAlert("Build Failed","error");
+            safeTerminal(result.terminal_log,"error");
+        }
+    }
+}
+
+// ===============================
+// ACTION ROUTER
+// ===============================
+document.querySelectorAll(".tb-action").forEach(btn=>{
+    btn.addEventListener("click",(e)=>{
+        e.stopPropagation();
+        const action = btn.getAttribute("data-action");
+
+        switch(action){
+
+            case "Nayi File":
+                window.promptNewFile?.("file");
+                break;
+
+            case "Naya Folder":
+                window.promptNewFile?.("folder");
+                break;
+
+            case "Save":
+                handleSave();
+                break;
+
+            case "Undo":
+                window.editorInstance?.trigger("keyboard","undo");
+                break;
+
+            case "Copy":
+                document.execCommand("copy");
+                break;
+
+            case "Naya Terminal":
+                window.toggleTerminal?.();
+                break;
+
+            case "Code Theek Karo":
+                safeAlert("AI module coming soon 🤖","info");
+                break;
+
+            default:
+                safeAlert(action+" (Coming Soon)");
+        }
+    });
+});
+
+// ===============================
+// RUN BUTTON
+// ===============================
+document.getElementById("tb-run-btn")
+?.addEventListener("click",handleRun);
+
+// ===============================
+// KEYBOARD SHORTCUTS
+// ===============================
+document.addEventListener("keydown",(e)=>{
+
+    // Ctrl + S
+    if(e.ctrlKey && e.key==="s"){
+        e.preventDefault();
+        handleSave();
+    }
+
+    // Ctrl + N
+    if(e.ctrlKey && e.key==="n"){
+        e.preventDefault();
+        window.promptNewFile?.("file");
+    }
+
+    // Ctrl + Enter → Run
+    if(e.ctrlKey && e.key==="Enter"){
+        e.preventDefault();
+        handleRun();
+    }
+
+});
+
+// ===============================
+// LAYOUT TOGGLES
+// ===============================
+document.getElementById("tb-toggle-sidebar")
+?.addEventListener("click",()=>window.toggleSidebar?.());
+
+document.getElementById("tb-toggle-bottom")
+?.addEventListener("click",()=>window.toggleTerminal?.());
+
+document.getElementById("tb-toggle-right")
+?.addEventListener("click",()=>window.togglePreview?.());
+
+});
+})();
+</script>

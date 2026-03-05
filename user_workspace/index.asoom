@@ -1,0 +1,63 @@
+page {
+    box class="main-container"
+        h1 "🚀 Asoom IDE - Only HTML Test!"
+        txt "Dekh bhai, bina JS ke UI kitna mast lag raha hai."
+        
+        box class="card"
+            h2 "Sirf UI Check Kar Rahe Hain"
+            txt "Agar yeh sahi dikh raha hai, toh tera HTML engine 100% pass hai!"
+            
+            box
+                inpt type="text" placeholder="Type karke dekh..."
+                btn class="mast-btn" text="Mast Button"
+            band
+            
+            list
+                item "HTML Engine Run: Success"
+                item "CSS Engine Run: Success"
+                item "JS Engine Run: Abhi Roka Hai"
+            list_band
+        band
+    band
+}
+
+style {
+    body {
+        background-color: #1e1e1e;
+        color: #ffffff;
+        font-family: sans-serif;
+        text-align: center;
+        padding: 50px;
+    }
+    .card {
+        background-color: #2d2d2d;
+        padding: 30px;
+        border-radius: 15px;
+        border: 1px solid #4ec9b0;
+        display: inline-block;
+        margin-top: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+    .mast-btn {
+        background-color: #007acc;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    inpt, input {
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #555;
+        background: #1e1e1e;
+        color: white;
+        margin-right: 10px;
+    }
+    ul {
+        text-align: left;
+        color: #cecece;
+        margin-top: 20px;
+    }
+}

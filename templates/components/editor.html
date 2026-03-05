@@ -1,0 +1,262 @@
+<!-- SAME HTML — untouched -->
+<div id="editor-area" class="flex-1 flex flex-col min-w-[300px] bg-[#1e1e1e] relative border-r border-[#252526]">
+
+    <div id="ed-tab-bar" class="flex bg-[#2d2d2d] text-[13px] text-gray-400 overflow-x-auto select-none min-h-[35px] shrink-0 custom-scrollbar"></div>
+
+    <div id="ed-breadcrumb" class="bg-[#1e1e1e] px-4 py-1.5 text-[11px] text-gray-400 flex items-center gap-2 shadow-sm shrink-0 select-none hidden">
+        <span class="hover:text-gray-200 cursor-pointer">Mera_Project</span> 
+        <i class="fa-solid fa-chevron-right text-[8px] mt-0.5"></i> 
+        <span id="ed-breadcrumb-text" class="hover:text-gray-200 cursor-pointer text-[#cccccc]"></span>
+    </div>
+
+    <div id="ed-loader" class="absolute inset-0 hidden flex-col items-center justify-center bg-[#1e1e1e] z-20">
+        <i class="fa-solid fa-circle-notch fa-spin text-2xl text-[#007acc] mb-2"></i>
+        <span class="text-[11px] text-gray-400">Loading File...</span>
+    </div>
+
+    <div id="monaco-container" class="flex-1 w-full relative hidden">
+        <div id="monaco-editor" class="absolute inset-0"></div>
+    </div>
+
+    <div id="empty-state" class="absolute inset-0 flex flex-col items-center justify-center bg-[#1e1e1e] z-10 select-none">
+        <i class="fa-solid fa-laptop-code text-6xl text-[#333] mb-4"></i>
+        <h2 class="text-[#666] text-2xl font-semibold">Asoom IDE Pro</h2>
+        <p class="text-[#555] text-[13px] mt-2 tracking-wide font-mono">Sidebar se koi file open karein</p>
+    </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs/loader.min.js"></script>
+
+<script>
+(function() {
+
+    // =============================
+    // STATE
+    // =============================
+    let fileData = {};
+    let openTabs = [];
+    let autoSaveTimer = null;
+
+    window.activeTab = null;
+    window.editorInstance = null;
+
+    const tabBar = document.getElementById('ed-tab-bar');
+    const breadcrumbText = document.getElementById('ed-breadcrumb-text');
+    const emptyState = document.getElementById('empty-state');
+    const monacoContainer = document.getElementById('monaco-container');
+    const breadcrumb = document.getElementById('ed-breadcrumb');
+    const loader = document.getElementById('ed-loader');
+
+    // =============================
+    // HELPERS (UNCHANGED LOGIC)
+    // =============================
+    function getIcon(filename){
+        if(!filename) return '';
+        if(filename.endsWith(".asoom")) return '<i class="fa-solid fa-bolt text-[#c586c0]"></i>';
+        if(filename.endsWith(".html")) return '<i class="fa-brands fa-html5 text-[#e34f26]"></i>';
+        if(filename.endsWith(".css")) return '<i class="fa-brands fa-css3-alt text-[#264de4]"></i>';
+        if(filename.endsWith(".js")) return '<i class="fa-brands fa-js text-[#f7df1e]"></i>';
+        return '<i class="fa-brands fa-python text-[#3776ab]"></i>';
+    }
+
+    function getLang(filename) {
+        if(!filename) return 'plaintext';
+        if(filename.endsWith('.html')) return 'html';
+        if(filename.endsWith('.css')) return 'css';
+        if(filename.endsWith('.js')) return 'javascript';
+        return 'python';
+    }
+
+    function showLoader() { loader.classList.remove('hidden'); loader.classList.add('flex'); }
+    function hideLoader() { loader.classList.add('hidden'); loader.classList.remove('flex'); }
+
+    // =============================
+    // TAB RENDER
+    // =============================
+    function renderTabs() {
+
+        tabBar.innerHTML = '';
+
+        if(openTabs.length === 0) {
+            window.activeTab = null;
+            monacoContainer.classList.add('hidden');
+            breadcrumb.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+            emptyState.classList.add('flex');
+            if(window.editorInstance) window.editorInstance.setValue('');
+            return;
+        }
+
+        monacoContainer.classList.remove('hidden');
+        breadcrumb.classList.remove('hidden');
+        emptyState.classList.add('hidden');
+        emptyState.classList.remove('flex');
+
+        openTabs.forEach(tab => {
+
+            const isActive = (tab === window.activeTab);
+            const activeClasses = isActive 
+                ? 'bg-[#1e1e1e] text-white border-t-2 border-[#007acc]' 
+                : 'bg-[#2d2d2d] hover:bg-[#2a2d2e] border-t-2 border-transparent text-gray-400';
+
+            tabBar.innerHTML += `
+                <div class="ed-tab px-3 py-1.5 flex items-center gap-2 cursor-pointer border-r border-[#252526] min-w-[120px] group transition ${activeClasses}" data-tab="${tab}">
+                    ${getIcon(tab)} <span>${tab}</span>
+                    <i class="ed-close-tab fa-solid fa-xmark text-[10px] ml-auto opacity-0 group-hover:opacity-100 hover:bg-[#444] rounded px-1.5 py-0.5 transition" data-tab="${tab}"></i>
+                </div>
+            `;
+        });
+
+        attachTabEvents();
+    }
+
+    async function switchTab(filename) {
+
+        window.activeTab = filename;
+        breadcrumbText.innerText = filename;
+        renderTabs();
+
+        if (!fileData.hasOwnProperty(filename)) {
+
+            showLoader();
+
+            if(window.AsoomAPI) {
+
+                const result = await window.AsoomAPI.loadFile(filename);
+
+                if(result.status === 'success') {
+                    fileData[filename] = result.code;
+                } 
+                else if (result.status === 'not_found') {
+                    fileData[filename] = '';
+                } 
+                else {
+                    if(typeof window.showAlert === 'function') {
+                        window.showAlert("File load hone mein error!", "error");
+                    }
+                    fileData[filename] = '';
+                }
+
+            } else {
+                fileData[filename] = '';
+            }
+
+            hideLoader();
+        }
+
+        if(window.editorInstance) {
+            const lang = getLang(filename);
+            monaco.editor.setModelLanguage(window.editorInstance.getModel(), lang);
+            window.editorInstance.setValue(fileData[filename] || '');
+        }
+    }
+
+    function closeTab(e, filename) {
+        e.stopPropagation();
+        openTabs = openTabs.filter(t => t !== filename);
+
+        if(window.activeTab === filename) {
+            window.activeTab = openTabs.length > 0 ? openTabs[openTabs.length - 1] : null;
+        }
+
+        if(window.activeTab) switchTab(window.activeTab);
+        else renderTabs();
+    }
+
+    function attachTabEvents() {
+        document.querySelectorAll('.ed-tab').forEach(tab => {
+            tab.onclick = () => {
+                const name = tab.getAttribute('data-tab');
+                if(name !== window.activeTab) switchTab(name);
+            };
+        });
+
+        document.querySelectorAll('.ed-close-tab').forEach(btn => {
+            btn.onclick = (e) => {
+                closeTab(e, btn.getAttribute('data-tab'));
+            };
+        });
+    }
+
+    // =============================
+    // MONACO INIT (FIXED — NO DUPLICATE)
+    // =============================
+    require.config({ 
+        paths: { 
+            'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs' 
+        }
+    });
+
+    require(['vs/editor/editor.main'], function() {
+
+        window.editorInstance = monaco.editor.create(
+            document.getElementById('monaco-editor'),
+            {
+                value: '',
+                language: 'python',
+                theme: 'vs-dark',
+                fontSize: 15,
+                minimap: { enabled: false },
+                automaticLayout: true,
+                padding: { top: 10 }
+            }
+        );
+
+        window.editorInstance.onDidChangeModelContent(() => {
+
+            if(window.activeTab) {
+
+                const codeContent = window.editorInstance.getValue();
+                fileData[window.activeTab] = codeContent;
+
+                const isAutoSaveOn = localStorage.getItem('asoom_autosave') === 'true';
+
+                if (isAutoSaveOn) {
+
+                    clearTimeout(autoSaveTimer);
+
+                    autoSaveTimer = setTimeout(async () => {
+
+                        try {
+
+                            await fetch('/api/save', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    filename: window.activeTab,
+                                    code: codeContent
+                                })
+                            });
+
+                            if(window.printToTerminal) {
+                                window.printToTerminal(
+                                    `[Auto-Save] ${window.activeTab} saved successfully.`,
+                                    "system"
+                                );
+                            }
+
+                        } catch (err) {
+                            console.error("Auto Save Error", err);
+                        }
+
+                    }, 1500);
+                }
+            }
+
+        });
+
+    });
+
+    // =============================
+    // GLOBAL HOOK
+    // =============================
+    window.openFileInEditor = function(filename) {
+        if(!openTabs.includes(filename)) {
+            openTabs.push(filename);
+        }
+        switchTab(filename);
+    };
+
+})();
+</script>
